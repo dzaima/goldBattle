@@ -1,0 +1,13 @@
+body {
+  background-color: #333;
+  color: #D3D3D3;
+}
+.dr > td {
+  color: #000;
+  text-align: center;
+  padding: 0px;
+  width: 40px;
+}
+span {
+  color: #D3D3D3;
+}
