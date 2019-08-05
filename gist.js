@@ -188,9 +188,9 @@ function runTurn() {
         if (b.hp < 0) {
             for (let a, j = 0; j < b.attackers.length; j++) {
                 a = b.attackers[j];
-                a.gold += Math.ceil(b.worth / 2);
-                a.worth += Math.ceil(b.worth / 2);
-                records[j] += Math.ceil(b.worth / 2);
+                bots[a].gold += Math.ceil(b.worth / 2);
+                bots[a].worth += Math.ceil(b.worth / 2);
+                records[a] += Math.ceil(b.worth / 2);
             }
         }
     }
