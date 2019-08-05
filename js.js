@@ -68,6 +68,10 @@ function injected(part) {
     data.innerHTML="";
     let title = data.insertRow();
     
+    let hTurnHCell = title.insertCell();
+    hTurnHCell.innerText = "turn";
+    hTurnHCell.style.textAlign = "center";
+    
     for (let {name} of botData) {
       let hcell = title.insertCell();
       hcell.innerText = name;
@@ -77,12 +81,19 @@ function injected(part) {
       let span = hcell.children[0];
       span.style.width="10px";
       span.style.float="left";
-      span.style.transform="rotate(70deg)";
+      span.style.transform="rotate(60deg)";
     }
     let prow = null;
+    let turnN = 0;
     for (let row of dhistory) {
       let hrow = data.insertRow();
       hrow.classList.add("dr");
+      
+      let hTurnCell = hrow.insertCell();
+      hTurnCell.innerHTML = turnN++ + "&nbsp;";
+      hTurnCell.style.color = "#D2D2D2";
+      hTurnCell.style.textAlign = "right";
+      
       for (let {hp, gold, shield, healL, attackL, shieldL, farmL, move, worth} of row) {
         let hcell = hrow.insertCell();
         // hcell.style.textAlign="center";
