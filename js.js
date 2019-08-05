@@ -101,7 +101,7 @@ function injected(part) {
         // hcell.style.padding="0";
         // hcell.width=40;
         let hpR = Math.max(hp, 0);
-        hcell.style.backgroundColor = color(255-hpR*2.55, hpR*2.55, shield);
+        hcell.style.backgroundColor = hp<=0? "#881111" : color(255-hpR*2.55, hpR*2.55, shield);
         hcell.innerText = gold;
         hcell.innerHTML = "<div>" + hcell.innerHTML + "</div>";
         let div = hcell.children[0];
@@ -193,6 +193,7 @@ function tournament(rounds) {
     
     tres = [];
     for (let i = 0; i < rounds; i++) {
+      records = [];
       runRound();
       console.log(i);
       tres.push(records);
