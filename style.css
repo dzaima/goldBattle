@@ -11,3 +11,24 @@ body {
 span {
   color: #D3D3D3;
 }
+
+
+
+td.rotate {
+  height: 140px;
+  white-space: nowrap;
+}
+
+td.rotate > div {
+  transform: 
+    translate(25px, 51px)
+    rotate(315deg);
+  width: 30px;
+}
+td.rotate > div > span {
+  vertical-align: middle;
+  display: inline-block;
+  width: 150px;
+  border-bottom: 1px solid #555;
+  padding: 5px 10px;
+}
