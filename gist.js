@@ -68,6 +68,7 @@ var attack = bot => {
         return [null];
     return ["attack", index];
 };
+var snap = attack;
 var shield = () => ["shield"];
 var stun = bot => {
     var index = bots.findIndex(el => el.uid == bot && el.hp > 0);
@@ -187,10 +188,10 @@ function runTurn() {
         }
         if (b.hp < 0) {
             for (let a, j = 0; j < b.attackers.length; j++) {
-                a = b.attackers[j];
-                bots[a].gold += Math.ceil(b.worth / 2);
-                bots[a].worth += Math.ceil(b.worth / 2);
-                records[a] += Math.ceil(b.worth / 2);
+                a = bots[b.attackers[j]];
+                a.gold += Math.ceil(b.worth / 2);
+                a.worth += Math.ceil(b.worth / 2);
+                records[b.attackers[j]] += Math.ceil(b.worth / 2);
             }
         }
     }
