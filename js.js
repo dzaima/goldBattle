@@ -179,23 +179,28 @@ function actualRun() {
 }
 
 function tournament(rounds) {
-  $.getScript("bot.js", c => {
-    myBotObj.fn = eval("["+c+"]")[0];
-    
+  cont = () => {
     bots = [];
     botData = answers
-    .filter(c => c.enabled)
-    .map(c => (
-      {name:c.name, debug:0, run: c.fn}
-    ));
+      .filter(c => c.enabled)
+      .map(c => (
+        {name:c.name, debug:0, run: c.fn}
+      ));
     injected(-1);
     
     tres = [];
     for (let i = 0; i < rounds; i++) {
-      runGame(1);
+      runGame(1, 1);
+      console.log(i);
       tres.push(records);
     }
-  })
+  }
+  if (customBot) {
+    $.getScript("bot.js", c => {
+      myBotObj.fn = eval("["+c+"]")[0];
+      cont();
+    });
+  } else cont();
 }
 
 
