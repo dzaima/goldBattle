@@ -190,7 +190,7 @@ function tournament(rounds) {
     
     tres = [];
     for (let i = 0; i < rounds; i++) {
-      runGame(1, 1);
+      runRound();
       console.log(i);
       tres.push(records);
     }
