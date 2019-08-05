@@ -18,14 +18,20 @@ function loadPlayers() {
   //     ans.fn = eval("["+ans.code+"]")[0];
   //   }
   //   answers = saved;
+  //   if (customBot) answers.push(myBotObj);
   // }
   loadAnswers(site, qid, c => {
     answers = c.map(answer => {
       let code = decode((codePattern.exec(answer.body)||[])[1]);
       let name =        (namePattern.exec(answer.body)||[,""])[1].split(",")[0];
       if (!name) name = /function (\w+)/.exec(code)[1];
-      let fn = eval("["+code+"]")[0];
-      return {name, code, fn, enabled:1};
+      try {
+        let fn = eval("["+code+"]")[0];
+        return {name, code, fn, enabled:1};
+      } catch (e) {
+        console.log("Failed to eval bot "+name+"!");
+        return {name, code, fn:null, enabled:0};
+      }
     });
     
     if (customBot) answers.push(myBotObj);
@@ -77,7 +83,7 @@ function injected(part) {
     for (let row of dhistory) {
       let hrow = data.insertRow();
       hrow.classList.add("dr");
-      for (let {hp, gold, shield, healL, attackL, shieldL, farmL, move} of row) {
+      for (let {hp, gold, shield, healL, attackL, shieldL, farmL, move, worth} of row) {
         let hcell = hrow.insertCell();
         // hcell.style.textAlign="center";
         // hcell.style.padding="0";
@@ -96,6 +102,7 @@ function injected(part) {
         <tr><td>attackL</td> <td>${attackL}</td></tr>
         <tr><td>farmL</td> <td>${farmL}</td></tr>
         <tr><td>shieldL</td> <td>${shieldL}</td></tr>
+        <tr><td>worth</td> <td>${worth}</td></tr>
         <tr><td>move</td> <td>${["attack","stun"].includes(move[0])?  move[0]+" "+botData[move[1]].name  :  move.join(' ')}</tr>
         </table>`;
         div.onmouseover = function() {
@@ -121,6 +128,7 @@ function injected(part) {
     dhistory.push(bots.map((bot, i)=>({
       hp: bot.hp,
       gold: bot.gold,
+      worth: bot.worth,
       shield: bot.shield,
       healL: bot.lvl.heal,
       attackL: bot.lvl.attack,
@@ -134,6 +142,10 @@ function injected(part) {
 function color(r, g, b) {
   return "rgb("+r+","+g+","+b+")";
   // return "#"+[r, g, b].map(c=>Math.min(Math.max(Math.round(c), 0), 255).toString(16).padStart(2, '0')).join('')
+}
+
+function find(name) {
+  return answers.find(c=>c.name.includes(name));
 }
 
 function actualRun() {
