@@ -37,6 +37,7 @@ function loadPlayers() {
     if (customBot) answers.push(myBotObj);
     
     console.log(answers);
+    actualRun();
   });
   
     
@@ -70,19 +71,14 @@ function injected(part) {
     let title = data.insertRow();
     
     let hTurnHCell = title.insertCell();
-    hTurnHCell.innerText = "turn";
-    hTurnHCell.style.textAlign = "center";
+    hTurnHCell.classList.add("rotate");
+    hTurnHCell.innerHTML = "<div><span>turn</span></div>";
     
     for (let {name} of botData) {
       let hcell = title.insertCell();
+      hcell.classList.add("rotate");
       hcell.innerText = name;
-      hcell.innerHTML = "<span>" + hcell.innerHTML + "</span>";
-      hcell.style.paddingBottom="80px";
-      hcell.style.textAlign="center";
-      let span = hcell.children[0];
-      span.style.width="10px";
-      span.style.float="left";
-      span.style.transform="rotate(60deg)";
+      hcell.innerHTML = "<div><span>" + hcell.innerHTML + "</span></div>";
     }
     let prow = null;
     let turnN = 0;
