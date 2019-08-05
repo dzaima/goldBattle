@@ -42,6 +42,7 @@ function loadPlayers() {
     
   
   let lns=(runTurn+"").split("\n"); // evil hack to inject code into every turn
+  lns.splice(lns.indexOf("    for (let r, b, i = 0; i < bots.length; i++) {"), 0, "    injected('start');");
   lns.splice(lns.indexOf("    for (let m, b, n, i = 0; i < moves.length; i++) {"), 0, "    injected(moves);");
   runTurn = eval("["+lns.join("\n")+"]")[0];
   hoverobj.onmouseover = function() {
@@ -134,9 +135,9 @@ function injected(part) {
       prow = hrow;
     }
     
-  } else {
+  } else if (part === 'start') {
     if (dhistory.length > 1000) return; // idk what's happening, but we don't want none of that
-    dhistory.push(bots.map((bot, i)=>({
+    dhistory.push(bots.map(bot => ({
       hp: bot.hp,
       gold: bot.gold,
       worth: bot.worth,
@@ -145,8 +146,10 @@ function injected(part) {
       attackL: bot.lvl.attack,
       shieldL: bot.lvl.shield,
       farmL: bot.lvl.farm,
-      move: part[i]
-    })))
+      move: "TODO"
+    })));
+  } else {
+    dhistory[dhistory.length-1].forEach((c, i) => c.move = part[i]);
   }
 }
 
