@@ -24,35 +24,37 @@ function freeTestBotB(me, others) {
             return shield();
 }
 
-//Put bot names and functions below.
+//Put bot names and functions below. Set debug to 1 or 2 for event log.
 
 var botData = [
     {
         name: "FreeTestBotA",
+        debug: 0,
         run: freeTestBotA
     },
     {
         name: "FreeTestBotB",
+        debug: 0,
         run: freeTestBotB
     }
 ];
 
-//Just call this function to test. Errors will not stop the game. Max turns: 1000. To debug, breakpoints are very effective (use statement "debugger"). A version of this code with an event logger is also available.
+//Just call this function to test. Errors will not stop the game. Max turns: 1000. Event logger included, set log to false to disable
 
-function runGame(rounds = 1) {
+function runGame(rounds = 1, log = true) {
     records = [];
     for (let i = 0; i < rounds; i++)
-        runRound();
+        runRound(log);
     var ids = [];
     for (let i = 0; i < records.length; i++)
         ids[i] = i;
     ids = ids.sort((a, b) => records[b] - records[a]);
-    console.group("Results");
+    var results = "Results: ";
     for (let b, i = 0; i < ids.length; i++) {
         b = ids[i];
-        console.log(botData[b].name + ": " + (records[b] / rounds));
+        results += "\n " + (i < 9 ? " " : "") + (i + 1) + ". " + botData[b].name + ": " + (records[b] / rounds);
     }
-    console.groupEnd("Results");
+    console.log(results);
 }
 
 //Ignore everything under this, it's internal stuff
@@ -65,10 +67,9 @@ var heal = () => ["heal"];
 var attack = bot => {
     var index = bots.findIndex(el => el.uid == bot && el.hp > 0);
     if (index == -1)
-        return [null];
+        return [null, "attack", bot];
     return ["attack", index];
 };
-var snap = attack;
 var shield = () => ["shield"];
 var stun = bot => {
     var index = bots.findIndex(el => el.uid == bot && el.hp > 0);
@@ -80,12 +81,36 @@ var farm = () => ["farm"];
 var upgrade = item => {
     if (["heal", "attack", "shield", "farm"].includes(item))
         return ["upgrade", item];
-    return [null];
+    return [null, "upgrade", item];
 };
 var cost = lvl => 2.5 * (lvl ** 2) + 2.5 * lvl + 10;
 var turn = () => turns;
+var move = code => {
+    if (!Array.isArray(code))
+        return "Invalid [" + code + "]";
+    else if (code[0] == "heal")
+        return "Healed";
+    else if (code[0] == "attack")
+        return "Attacked " + botData[code[1]].name;
+    else if (code[0] == "shield")
+        return "Shielded";
+    else if (code[0] == "stun")
+        return "Stunned " + botData[code[1]].name;
+    else if (code[0] == "farm")
+        return "Farmed";
+    else if (code[0] == "upgrade")
+        return "Upgraded " + code[1];
+    else if (!code[0] && !code[1])
+        return "Skipped";
+    else if (!code[0] && code[1] == "attack")
+        return "Attacked unknown UID [" + code[2] + "]";
+    else if (!code[0] && code[1] == "upgrade")
+        return "Upgraded unknown move [" + code[2] + "]";
+    else
+        return "Unknown [" + code[0] + "]";
+};
 
-function runRound() {
+function runRound(log) {
     var uids = [];
     for (let i = 0; i < 100; i++)
         uids[i] = i;
@@ -114,11 +139,11 @@ function runRound() {
     turns = 0;
     while (bots.filter(el => el.hp > 0).length > 1 && turns < 1000) {
         turns += 1;
-        runTurn();
+        runTurn(log);
     }
 }
 
-function runTurn() {
+function runTurn(log) {
     var moves = [];
     var uids = bots.filter(el => el.hp > 0).map(el => ({
         uid: el.uid,
@@ -130,18 +155,25 @@ function runTurn() {
         j = Math.floor(Math.random() * (i + 1));
         [uids[i], uids[j]] = [uids[j], uids[i]];
     }
-    for (let r, b, i = 0; i < bots.length; i++) {
+    for (let ls, u, m, r, b, i = 0; i < bots.length; i++) {
         b = bots[i];
         b.attackers = [];
+        if (log && botData[i].debug == 1)
+            ls = JSON.stringify(b.storage);
         if (b.hp > 0 && !b.stun) {
             try {
-                r = botData[i].run({
+                r = botData[i].run(m = {
                     uid: b.uid,
                     hp: b.hp,
                     gold: b.gold,
                     shield: b.shield,
-                    levels: Object.create(b.lvl)
-                }, uids.filter(el => el.uid != b.uid), b.storage) || [null];
+                    levels: {
+                        heal: b.lvl.heal,
+                        attack: b.lvl.attack,
+                        shield: b.lvl.shield,
+                        farm: b.lvl.farm
+                    }
+                }, u = uids.filter(el => el.uid != b.uid), b.storage) || [null];
             } catch (e) {
                 console.error("Error in " + botData[i].name + ":\n" + e.stack);
                 r = [null];
@@ -149,6 +181,9 @@ function runTurn() {
         } else {
             b.stun = false;
             r = [null];
+        }
+        if (log && botData[i].debug == 1 && b.hp > 0 && !b.stun) {
+            console.log("[" + turns + "] " + botData[i].name + ":\n   Self: " + JSON.stringify(m) + "\n   Others: " + JSON.stringify(u) + "\n   Storage: " + ls + "\n   Move: " + move(r));
         }
         if (r[0] == "heal")
             b.hp = Math.min(100, b.hp + b.lvl.heal + 5);
@@ -158,6 +193,12 @@ function runTurn() {
         m = moves[i];
         b = bots[i];
         n = botData[i].name;
+        if (log && botData[i].debug == 2 && b.hp > 0) {
+            if (b.stun)
+                console.log("[" + turns + "] " + n + ": Stunned by " + b.stun);
+            else
+                console.log("[" + turns + "] " + n + ":\n   HP/SHP: " + b.hp + "/" + (b.hp + b.shield) + "\n   Gold/Worth: " + b.gold + "/" + b.worth + "\n   Levels: " + b.lvl.heal + "/" + b.lvl.attack + "/" + b.lvl.shield + "/" + b.lvl.farm + "\n   Move: " + move(moves[i]));
+        }
         if (!m)
             continue;
         if (m[0] == "attack") {
@@ -174,6 +215,8 @@ function runTurn() {
             b.worth += b.lvl.farm * 2 + 5;
             records[i] += b.lvl.farm * 2 + 5;
             b.hp -= 2;
+            if (log && b.hp < 0)
+                console.log("%c[" + turns + "] " + n + " died of overfarming", "font-weight: bold");
         } else if (m[0] == "upgrade" && b.gold >= cost(b.lvl[m[1]])) {
             b.lvl[m[1]] += 1;
             b.gold -= cost(b.lvl[m[1]] - 1);
@@ -192,6 +235,8 @@ function runTurn() {
                 a.gold += Math.ceil(b.worth / 2);
                 a.worth += Math.ceil(b.worth / 2);
                 records[b.attackers[j]] += Math.ceil(b.worth / 2);
+                if (log)
+                    console.log("%c[" + turns + "] " + botData[b.attackers[j]].name + " killed " + n, "font-weight: bold");
             }
         }
     }

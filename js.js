@@ -43,8 +43,8 @@ function loadPlayers() {
     
   
   let lns=(runTurn+"").split("\n"); // evil hack to inject code into every turn
-  lns.splice(lns.indexOf("    for (let r, b, i = 0; i < bots.length; i++) {"), 0, "    injected('start');");
-  lns.splice(lns.indexOf("    for (let m, b, n, i = 0; i < moves.length; i++) {"), 0, "    injected(moves);");
+  lns.splice(lns.indexOf("    for (let ls, u, m, r, b, i = 0; i < bots.length; i++) {"), 0, "    injected('p1');");
+  lns.splice(lns.indexOf("    for (let m, b, n, i = 0; i < moves.length; i++) {"), 0, "    injected('p2', moves);");
   runTurn = eval("["+lns.join("\n")+"]")[0];
   hoverobj.onmouseover = function() {
     if (hoverobj.parentElement.nextCell) {
@@ -57,14 +57,14 @@ var dhistory = [];
 
 var collect = false;
 
-function injected(part) {
-  if (part === 1) {
+function injected(part, arg) {
+  if (part === "game") {
     collect = true;
     dhistory = [];
-  } else if (part == -1) {
+  } else if (part === "tournament") {
     collect = false;
     dhistory = [];
-  } else if (part === 3) {
+  } else if (part === "table") {
     
     document.body.appendChild(hoverobj);
     data.innerHTML="";
@@ -91,13 +91,14 @@ function injected(part) {
       hTurnCell.style.color = "#D2D2D2";
       hTurnCell.style.textAlign = "right";
       
-      for (let {hp, gold, shield, healL, attackL, shieldL, farmL, move, worth} of row) {
+      for (let {hp, gold, shield, healL, attackL, shieldL, farmL, move, worth, stun} of row) {
         let hcell = hrow.insertCell();
         // hcell.style.textAlign="center";
         // hcell.style.padding="0";
         // hcell.width=40;
-        let hpR = Math.max(hp, 0);
-        hcell.style.backgroundColor = hp<=0? "#881111" : color(255-hpR*2.55, hpR*2.55, shield);
+        let hpR = Math.max(hp, 0) * 2.55;
+        let sc = c => stun? c : 1;
+        hcell.style.backgroundColor = hp<=0? "#881111" : color(255 - hpR*sc(.3), 255 - (255-hpR)*sc(.5), 255 - (255-shield)*sc(.7));
         hcell.innerText = gold;
         hcell.innerHTML = "<div>" + hcell.innerHTML + "</div>";
         let div = hcell.children[0];
@@ -111,7 +112,7 @@ function injected(part) {
         <tr><td>farmL</td> <td>${farmL}</td></tr>
         <tr><td>shieldL</td> <td>${shieldL}</td></tr>
         <tr><td>worth</td> <td>${worth}</td></tr>
-        <tr><td>move</td> <td>${["attack","stun"].includes(move[0])?  move[0]+" "+botData[move[1]].name  :  move.join(' ')}</tr>
+        <tr><td>move</td> <td>${stun? "stunned" : ["attack","stun"].includes(move[0])?  move[0]+" "+botData[move[1]].name  :  move.join(' ')}</tr>
         </table>`;
         div.onmouseover = function() {
           hoverobj.hidden = false;
@@ -131,7 +132,7 @@ function injected(part) {
       prow = hrow;
     }
     
-  } else if (part === 'start') {
+  } else if (part === "p1") {
     if (dhistory.length > 1000) return; // idk what's happening, but we don't want none of that
     dhistory.push(bots.map(bot => ({
       hp: bot.hp,
@@ -142,10 +143,11 @@ function injected(part) {
       attackL: bot.lvl.attack,
       shieldL: bot.lvl.shield,
       farmL: bot.lvl.farm,
-      move: "TODO"
+      stun: bot.stun,
+      move: null
     })));
-  } else {
-    dhistory[dhistory.length-1].forEach((c, i) => c.move = part[i]);
+  } else if (part === "p2") {
+    dhistory[dhistory.length-1].forEach((c, i) => c.move = arg[i]);
   }
 }
 
@@ -158,49 +160,45 @@ function find(name) {
   return answers.find(c=>c.name.includes(name));
 }
 
-function actualRun() {
-  let cont = c => {
-    if (customBot) myBotObj.fn = eval("["+c+"]")[0];
-    
-    bots = [];
-    botData = answers
-    .filter(c => c.enabled)
-    .map(c => (
-      {name:c.name, debug:0, run: c.fn}
-    ));
-    injected(1);
-    runGame(1);
-    injected(3);
-  }
-  
-  if (customBot) $.getScript("bot.js", cont);
-  else cont();
+function actualRun(log = false) {
+  console.clear();
+  updateBots(() => {
+    injected("game");
+    runGame(1, log);
+    injected("table");
+  });
 }
 
 function tournament(rounds) {
-  cont = () => {
-    bots = [];
-    botData = answers
-      .filter(c => c.enabled)
-      .map(c => (
-        {name:c.name, debug:0, run: c.fn}
-      ));
-    injected(-1);
+  updateBots(() => {
+    injected("tournament");
     
     tres = [];
     for (let i = 0; i < rounds; i++) {
       records = [];
-      runRound();
-      console.log(i);
+      runRound(false);
+      if (i%100 == 0) console.log(i + "/" + rounds);
       tres.push(records);
     }
-  }
-  if (customBot) {
-    $.getScript("bot.js", c => {
-      myBotObj.fn = eval("["+c+"]")[0];
-      cont();
-    });
-  } else cont();
+  });
+}
+
+function updateBots(cont) {
+  if (customBot) $.getScript("bot.js", c => {
+    myBotObj.fn = eval("["+c+"]")[0];
+    
+    
+    
+    
+    bots = [];
+    botData = answers
+      .filter(c => c.enabled)
+      .map(c =>
+        ({name:c.name, debug:0, run: c.fn})
+      );
+    cont();
+  });
+  else cont();
 }
 
 
