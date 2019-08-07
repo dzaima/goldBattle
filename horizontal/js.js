@@ -4,7 +4,7 @@ var qid = 189110;
 var site = 'codegolf';
 var answers = null;
 var myBotObj = {name:"myBot", fn: null, enabled: 1};
-var customBot = true;
+var customBot = false;
 
 
 $(loadPlayers);
