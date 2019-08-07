@@ -46,9 +46,9 @@ function loadPlayers() {
   lns.splice(lns.indexOf("    for (let ls, u, m, r, b, i = 0; i < bots.length; i++) {"), 0, "    injected('p1');");
   lns.splice(lns.indexOf("    for (let m, b, n, i = 0; i < moves.length; i++) {"), 0, "    injected('p2', moves);");
   runTurn = eval("["+lns.join("\n")+"]")[0];
-  hoverobj.onmouseover = function() {
-    if (hoverobj.parentElement.nextCell) {
-      hoverobj.parentElement.nextCell.appendChild(hoverobj);
+  hoverobjW.onmouseover = function() {
+    if (hoverobjW.parentElement.nextCell) {
+      hoverobjW.parentElement.nextCell.appendChild(hoverobjW);
     }
   };
 }
@@ -66,7 +66,7 @@ function injected(part, arg) {
     dhistory = [];
   } else if (part === "table") {
     
-    document.body.appendChild(hoverobj);
+    document.body.appendChild(hoverobjW);
     data.innerHTML="";
     let title = data.insertRow();
     
@@ -91,6 +91,7 @@ function injected(part, arg) {
       hTurnCell.style.color = "#D2D2D2";
       hTurnCell.style.textAlign = "right";
       
+      let i = 0;
       for (let {hp, gold, shield, healL, attackL, shieldL, farmL, move, worth, stun} of row) {
         let hcell = hrow.insertCell();
         // hcell.style.textAlign="center";
@@ -114,15 +115,21 @@ function injected(part, arg) {
         <tr><td>worth</td> <td>${worth}</td></tr>
         <tr><td>move</td> <td>${stun? "stunned" : ["attack","stun"].includes(move[0])?  move[0]+" "+botData[move[1]].name  :  move.join(' ')}</tr>
         </table>`;
+        let ci = i;
         div.onmouseover = function() {
           hoverobj.hidden = false;
-          hcell.appendChild(hoverobj);
+          hoverobj.style.right = ci<3? "0%" : ci>row.length-3? "100%" : "50%";
+          hcell.appendChild(hoverobjW);
           hoverobj.innerHTML = hoverhtml;
         };
         div.onmouseout = function() {
           // (hcell.children[1]||0).hidden = true;
-          setTimeout(() => (hcell.children[1]||0).hidden = true, 10); // delay so less stutter
+          setTimeout(() => {
+            let ch = hcell.children[1];
+            if (ch) ch.children[0].hidden = true;
+          }, 10); // delay so less stutter
         };
+        i++;
       }
       
       if (prow) {
@@ -147,6 +154,7 @@ function injected(part, arg) {
       move: null
     })));
   } else if (part === "p2") {
+    if (dhistory.length > 1000) return;
     dhistory[dhistory.length-1].forEach((c, i) => c.move = arg[i]);
   }
 }
@@ -180,6 +188,7 @@ function tournament(rounds) {
       if (i%100 == 0) console.log(i + "/" + rounds);
       tres.push(records);
     }
+    console.log("Tournament complete!");
   });
 }
 
