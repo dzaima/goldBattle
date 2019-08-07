@@ -69,6 +69,7 @@ function injected(part, arg) {
     document.body.appendChild(hoverobjW);
     data.innerHTML="";
     let title = data.insertRow();
+    title.classList.add("topRow");
     
     let hTurnHCell = title.insertCell();
     hTurnHCell.classList.add("rotate");

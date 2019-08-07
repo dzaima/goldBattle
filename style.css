@@ -6,16 +6,24 @@ body {
   color: #000;
   text-align: center;
   padding: 0px;
-  width: 40px;
+  width: 37px;
 }
 span {
   color: #D3D3D3;
 }
 
-
+.topRow {
+  position: fixed;
+  top: 0px;
+  background-color: #333;
+  padding-right: 20px;
+}
 
 td.rotate {
   height: 140px;
+  padding: 0;
+  border: 0;
+  width: 37px;
   white-space: nowrap;
 }
 

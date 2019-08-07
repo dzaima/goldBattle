@@ -8,8 +8,12 @@
   <script src='js.js'></script>
 </head>
 <body>
-  <button onclick='actualRun()'>round</button>
-  <table id='data' style='border-spacing: 0;'> </table>
+  <div>
+    <table id='data' style='border-spacing: 0; position: relative; top: 150px; display: inline-block;'> </table>
+    <button onclick='actualRun()' style='float: right; position: absolute; top: 160px; right:10px'>round</button>
+  </div>
+  
+  
   <div id='hoverobjW' style="position: absolute">
     <div id='hoverobj' style="position: relative; background-color: #222; color:#D2D2D2; width: 200px; text-align: left" hidden> </div>
   </div>
