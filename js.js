@@ -183,22 +183,22 @@ function tournament(rounds) {
   });
 }
 
-function updateBots(cont) {
-  if (customBot) $.getScript("bot.js", c => {
-    myBotObj.fn = eval("["+c+"]")[0];
-    
-    
-    
-    
+function updateBots(cont2) {
+  cont1 = () => {
     bots = [];
     botData = answers
       .filter(c => c.enabled)
       .map(c =>
         ({name:c.name, debug:0, run: c.fn})
       );
-    cont();
+    cont2();
+  }
+  if (customBot) $.getScript("bot.js", c => {
+    myBotObj.fn = eval("["+c+"]")[0];
+    
+    cont1();
   });
-  else cont();
+  else cont1();
 }
 
 
