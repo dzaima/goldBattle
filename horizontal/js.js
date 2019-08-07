@@ -50,8 +50,6 @@ function loadPlayers() {
     
     if (customBot) answers.push(myBotObj);
     
-    if (location.origin.includes("github")) alert("dzaima pushed temp code ಠ_ಠ");
-    find("Kill Stealer").enabled = 0;
     
     console.log(answers);
     actualRun();
